@@ -6,4 +6,11 @@ echo "Start to build and test locally before pushing"
 
 # store the last exit code in a variable, 0 is success
 RESULT=$?
+
+if [ $RESULT -eq 0 ]; then
+    ./gradlew updateMinimumCoverage
+    git add ./gradle/config.properties
+    git commit -m "Update test coverage"
+fi
+
 exit $RESULT # non-zero code will prevent the push

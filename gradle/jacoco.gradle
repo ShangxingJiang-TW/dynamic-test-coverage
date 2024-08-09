@@ -2,7 +2,7 @@ apply plugin: 'jacoco'
 jacoco {
     toolVersion = "0.8.11"
     // default directory: layout.buildDirectory.dir("reports/jacoco")
-    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+//    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
 }
 
 def configFile = file('gradle/config.properties')
@@ -13,9 +13,10 @@ def minimumCoverage = config.getProperty('minimum_coverage').toBigDecimal()
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
     reports {
-        xml.required = false
+        xml.required = true
         csv.required = false
-        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+        html.required = true
+//        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
     }
     finalizedBy jacocoTestCoverageVerification
 }
@@ -43,5 +44,16 @@ jacocoTestCoverageVerification {
                 maximum = 20    // missed line count should be less than 20
             }
         }
+    }
+}
+
+task updateMinimumCoverage {
+    doLast {
+        def coverage = new XmlSlurper().parse(jacocoTestReport.reports.xml.destination)
+        def covered = coverage.'counter'.find { it.@type == 'INSTRUCTION' }.@covered.toBigDecimal()
+        def missed = coverage.'counter'.find { it.@type == 'INSTRUCTION' }.@missed.toBigDecimal()
+        def currentCoverage = covered / (covered + missed)
+        config.setProperty('minimum_coverage', currentCoverage.toString())
+        config.store(configFile.newWriter(), null)
     }
 }
