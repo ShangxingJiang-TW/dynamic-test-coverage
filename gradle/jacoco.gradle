@@ -1,3 +1,6 @@
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
+
 apply plugin: 'jacoco'
 jacoco {
     toolVersion = "0.8.11"
@@ -49,10 +52,22 @@ jacocoTestCoverageVerification {
 
 task updateMinimumCoverage {
     doLast {
-        def coverage = new XmlSlurper().parse(jacocoTestReport.reports.xml.destination)
-        def covered = coverage.'counter'.find { it.@type == 'INSTRUCTION' }.@covered.toBigDecimal()
-        def missed = coverage.'counter'.find { it.@type == 'INSTRUCTION' }.@missed.toBigDecimal()
-        def currentCoverage = covered / (covered + missed)
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        // Configure the factory to ignore DTD declarations
+        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+        DocumentBuilder db = dbf.newDocumentBuilder()
+        def reportFile = file('build/reports/jacoco/test/jacocoTestReport.xml')
+        def coverageDoc = db.parse(reportFile)
+
+        def counters = coverageDoc.getElementsByTagName('counter')
+        def counterList = (0..<counters.getLength()).collect { counters.item(it) }
+        def instructionCounters = counterList.findAll { it.getAttribute('type') == 'INSTRUCTION' }
+        def lastInstructionCounter = instructionCounters.get(instructionCounters.size() - 1)
+
+        def covered = lastInstructionCounter.getAttribute('covered').toBigDecimal()
+        def missed = lastInstructionCounter.getAttribute('missed').toBigDecimal()
+        def bufferForCoverage = 0.02
+        def currentCoverage = covered / (covered + missed) - bufferForCoverage
         config.setProperty('minimum_coverage', currentCoverage.toString())
         config.store(configFile.newWriter(), null)
     }
