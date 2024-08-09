@@ -35,10 +35,12 @@ dependencies {
     testImplementation 'com.h2database:h2'
 
     runtimeOnly 'com.h2database:h2'
-
 }
 
+apply from: 'gradle/jacoco.gradle'
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
 }
 
+apply from: 'gradle/githooks/git-hooks.gradle'

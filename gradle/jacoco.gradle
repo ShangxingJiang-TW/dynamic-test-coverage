@@ -1,0 +1,47 @@
+apply plugin: 'jacoco'
+jacoco {
+    toolVersion = "0.8.11"
+    // default directory: layout.buildDirectory.dir("reports/jacoco")
+    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+}
+
+def configFile = file('gradle/config.properties')
+def config = new Properties()
+config.load(new FileInputStream(configFile))
+def minimumCoverage = config.getProperty('minimum_coverage').toBigDecimal()
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+    finalizedBy jacocoTestCoverageVerification
+}
+
+// if there is already have a report result, it will directly use it
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        // global rule
+        rule {
+            limit {
+                minimum = minimumCoverage
+            }
+        }
+
+        // per package rule
+        rule {
+            enabled = false   // not enabled
+            element = 'CLASS' // use class as dimension
+            // all classes under the package
+            includes = ['io.reflectoring.buckpal.application.domain.model.*']
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
+                maximum = 20    // missed line count should be less than 20
+            }
+        }
+    }
+}
