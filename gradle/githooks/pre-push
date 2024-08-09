@@ -8,9 +8,9 @@ echo "Start to build and test locally before pushing"
 RESULT=$?
 
 if [ $RESULT -eq 0 ]; then
-    ./gradlew updateMinimumCoverage
+#    ./gradlew updateMinimumCoverage
     git add ./gradle/config.properties
-    git commit -m "Update test coverage"
+    git commit --amend --no-edit
 fi
 
 exit $RESULT # non-zero code will prevent the push
