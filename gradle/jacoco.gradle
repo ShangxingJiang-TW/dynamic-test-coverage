@@ -12,6 +12,7 @@ def configFile = file('gradle/config.properties')
 def config = new Properties()
 config.load(new FileInputStream(configFile))
 def minimumCoverage = config.getProperty('minimum_coverage').toBigDecimal()
+def bufferForCoverage = config.getProperty('coverage_buffer').toBigDecimal()
 
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
@@ -31,7 +32,7 @@ jacocoTestCoverageVerification {
         // global rule
         rule {
             limit {
-                minimum = minimumCoverage
+                minimum = minimumCoverage / 100
             }
         }
 
@@ -51,8 +52,9 @@ jacocoTestCoverageVerification {
 }
 
 task updateMinimumCoverage {
+    dependsOn jacocoTestReport
     doLast {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance()
         // Configure the factory to ignore DTD declarations
         dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
         DocumentBuilder db = dbf.newDocumentBuilder()
@@ -66,8 +68,7 @@ task updateMinimumCoverage {
 
         def covered = lastInstructionCounter.getAttribute('covered').toBigDecimal()
         def missed = lastInstructionCounter.getAttribute('missed').toBigDecimal()
-        def bufferForCoverage = 0.02
-        def currentCoverage = covered / (covered + missed) - bufferForCoverage
+        def currentCoverage =(covered / (covered + missed) * 100).setScale(2, BigDecimal.ROUND_HALF_UP) - bufferForCoverage
         config.setProperty('minimum_coverage', currentCoverage.toString())
         config.store(configFile.newWriter(), null)
     }
