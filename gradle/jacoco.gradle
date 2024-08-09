@@ -70,6 +70,6 @@ task updateMinimumCoverage {
         def missed = lastInstructionCounter.getAttribute('missed').toBigDecimal()
         def currentCoverage =(covered / (covered + missed) * 100).setScale(2, BigDecimal.ROUND_HALF_UP) - bufferForCoverage
         config.setProperty('minimum_coverage', currentCoverage.toString())
-        config.store(configFile.newWriter(), null)
+        config.store(configFile.newWriter(), "Config for unit test coverage")
     }
 }
