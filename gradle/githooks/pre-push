@@ -11,7 +11,6 @@ if [ $RESULT -eq 0 ]; then
     ./gradlew updateMinimumCoverage
     git add ./gradle/config.properties
     git commit -m "Auto update minimum test coverage limit"
-    git fetch origin
     git push --no-verify
 fi
 
