@@ -32,7 +32,7 @@ jacocoTestCoverageVerification {
         // global rule
         rule {
             limit {
-                minimum = minimumCoverage / 100
+                minimum = (minimumCoverage - bufferForCoverage) / 100
             }
         }
 
@@ -68,7 +68,7 @@ task updateMinimumCoverage {
 
         def covered = lastInstructionCounter.getAttribute('covered').toBigDecimal()
         def missed = lastInstructionCounter.getAttribute('missed').toBigDecimal()
-        def currentCoverage =(covered / (covered + missed) * 100).setScale(2, BigDecimal.ROUND_HALF_UP) - bufferForCoverage
+        def currentCoverage =(covered / (covered + missed) * 100).setScale(2, BigDecimal.ROUND_HALF_UP)
         config.setProperty('minimum_coverage', currentCoverage.toString())
         config.store(configFile.newWriter(), "Config for unit test coverage")
     }
