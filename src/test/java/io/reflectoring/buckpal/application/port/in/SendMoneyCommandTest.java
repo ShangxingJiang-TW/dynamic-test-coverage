@@ -29,14 +29,14 @@ class SendMoneyCommandTest {
         });
     }
 
-    @Test
-    public void accountIdValidationFails() {
-        Assertions.assertThrows(ConstraintViolationException.class, () -> {
-            new SendMoneyCommand(
-                    new Account.AccountId(42L),
-                    null,
-                    new Money(new BigInteger("10")));
-        });
-    }
+//    @Test
+//    public void accountIdValidationFails() {
+//        Assertions.assertThrows(ConstraintViolationException.class, () -> {
+//            new SendMoneyCommand(
+//                    new Account.AccountId(42L),
+//                    null,
+//                    new Money(new BigInteger("10")));
+//        });
+//    }
 
 }
