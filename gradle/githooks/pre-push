@@ -10,7 +10,7 @@ RESULT=$?
 if [ $RESULT -eq 0 ]; then
     ./gradlew updateMinimumCoverage
     git add ./gradle/config.properties
-    git commit --amend --no-edit
+    git commit -m "Auto update minimum test coverage limit"
 fi
 
 exit $RESULT # non-zero code will prevent the push
