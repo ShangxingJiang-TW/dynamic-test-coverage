@@ -18,8 +18,8 @@ jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
     reports {
         xml.required = true
-        csv.required = false
         html.required = true
+        csv.required = false
 //        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
     }
     finalizedBy jacocoTestCoverageVerification

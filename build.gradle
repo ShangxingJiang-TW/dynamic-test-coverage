@@ -1,6 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '3.1.0'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'info.solidsoft.pitest' version '1.15.0'
 }
 
 
@@ -42,4 +43,5 @@ test {
 }
 
 apply from: 'gradle/jacoco.gradle'
+apply from: 'gradle/pitest.gradle'
 apply from: 'gradle/githooks/git-hooks.gradle'
