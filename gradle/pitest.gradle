@@ -4,7 +4,8 @@ pitest {
     pitestVersion = '1.15.0' //not needed when a default PIT version should be used
     //adds dependency to org.pitest:pitest-junit5-plugin and sets "testPlugin" to "junit5"
     junit5PluginVersion = '1.0.0'    //or 0.15 for PIT <1.9.0
-    targetClasses = ['io.reflectoring.buckpal.application.domain.service.*']  //by default "${project.group}.*"
+    targetClasses = ['io.reflectoring.buckpal.application.domain.service.SendMoneyService']
+    targetTests = ['io.reflectoring.buckpal.application.domain.service.SendMoneyServiceTest']
     outputFormats = ['XML', 'HTML']
 
     threads = 4

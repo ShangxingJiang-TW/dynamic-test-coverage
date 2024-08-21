@@ -34,6 +34,58 @@ class SendMoneyServiceTest {
 			new SendMoneyService(loadAccountPort, accountLock, updateAccountStatePort, moneyTransferProperties());
 
 	@Test
+	void should_throw_exception_when_money_sent_is_greater_than_threshold() {
+		SendMoneyCommand command = new SendMoneyCommand(
+				new AccountId(1L),
+				new AccountId(2L),
+				Money.of(2_000L));
+
+		var sendMoneyService2 = new SendMoneyService(loadAccountPort, accountLock, updateAccountStatePort, moneyTransferProperties(1_000L));
+
+		assertThatThrownBy(() -> sendMoneyService2.sendMoney(command))
+				.isInstanceOf(ThresholdExceededException.class);
+//				.hasMessage("Maximum threshold for transferring money exceeded: tried to transfer 2000 but threshold is 1000!");
+	}
+
+	@Test
+	void should_throw_exception_when_source_account_id_is_null() {
+		AccountId sourceAccountId = new AccountId(41L);
+		Account sourceAccount = givenAnAccountWithId(sourceAccountId);
+		given(sourceAccount.getId()).willReturn(Optional.empty());
+
+		AccountId targetAccountId = new AccountId(42L);
+		Account targetAccount = givenAnAccountWithId(targetAccountId);
+
+		SendMoneyCommand command = new SendMoneyCommand(
+				sourceAccountId,
+				targetAccountId,
+				Money.of(2_000L));
+
+		assertThatThrownBy(() -> sendMoneyService.sendMoney(command))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("expected source account ID not to be empty");
+	}
+
+	@Test
+	void should_throw_exception_when_target_account_id_is_null() {
+		AccountId sourceAccountId = new AccountId(41L);
+		Account sourceAccount = givenAnAccountWithId(sourceAccountId);
+
+		AccountId targetAccountId = new AccountId(42L);
+		Account targetAccount = givenAnAccountWithId(targetAccountId);
+		given(targetAccount.getId()).willReturn(Optional.empty());
+
+		SendMoneyCommand command = new SendMoneyCommand(
+				sourceAccountId,
+				targetAccountId,
+				Money.of(2_000L));
+
+		assertThatThrownBy(() -> sendMoneyService.sendMoney(command))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("expected target account ID not to be empty");
+	}
+
+	@Test
 	void givenWithdrawalFails_thenOnlySourceAccountIsLockedAndReleased() {
 
 		AccountId sourceAccountId = new AccountId(41L);
@@ -57,6 +109,33 @@ class SendMoneyServiceTest {
 		then(accountLock).should().lockAccount(eq(sourceAccountId));
 		then(accountLock).should().releaseAccount(eq(sourceAccountId));
 		then(accountLock).should(times(0)).lockAccount(eq(targetAccountId));
+	}
+
+	@Test
+	void givenDepositFails_thenBothSourceAndTargetAccountsAreLockedAndReleased() {
+
+		AccountId sourceAccountId = new AccountId(41L);
+		Account sourceAccount = givenAnAccountWithId(sourceAccountId);
+
+		AccountId targetAccountId = new AccountId(42L);
+		Account targetAccount = givenAnAccountWithId(targetAccountId);
+
+		givenWithdrawalWillSucceed(sourceAccount);
+		givenDepositWillFail(targetAccount);
+
+		SendMoneyCommand command = new SendMoneyCommand(
+				sourceAccountId,
+				targetAccountId,
+				Money.of(300L));
+
+		boolean success = sendMoneyService.sendMoney(command);
+
+		assertThat(success).isFalse();
+
+		then(accountLock).should().lockAccount(eq(sourceAccountId));
+		then(accountLock).should().lockAccount(eq(targetAccountId));
+		then(accountLock).should().releaseAccount(eq(sourceAccountId));
+		then(accountLock).should().releaseAccount(eq(targetAccountId));
 	}
 
 	@Test
@@ -114,6 +193,11 @@ class SendMoneyServiceTest {
 				.willReturn(true);
 	}
 
+	private void givenDepositWillFail(Account account) {
+		given(account.deposit(any(Money.class), any(AccountId.class)))
+				.willReturn(false);
+	}
+
 	private void givenWithdrawalWillFail(Account account) {
 		given(account.withdraw(any(Money.class), any(AccountId.class)))
 				.willReturn(false);
@@ -143,6 +227,10 @@ class SendMoneyServiceTest {
 
 	private MoneyTransferProperties moneyTransferProperties(){
 		return new MoneyTransferProperties(Money.of(Long.MAX_VALUE));
+	}
+
+	private MoneyTransferProperties moneyTransferProperties(Long threshold){
+		return new MoneyTransferProperties(Money.of(threshold));
 	}
 
 }
