@@ -2,7 +2,7 @@
 set -x   # all executed commands are printed to the terminal
 
 echo "Start to build and test locally before pushing"
-./gradlew clean build test jacocoTestCoverageVerification
+./gradlew clean build test jacocoTestCoverageVerification pitest
 
 # store the last exit code in a variable, 0 is success
 RESULT=$?

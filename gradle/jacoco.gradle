@@ -2,6 +2,7 @@ import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 
 apply plugin: 'jacoco'
+
 jacoco {
     toolVersion = "0.8.11"
     // default directory: layout.buildDirectory.dir("reports/jacoco")
